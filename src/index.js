@@ -55,7 +55,69 @@ app.get("/api/pokemons", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("bienvenue sur l'API Pokémon");
+  res.send("Bienvenue sur l'API Pokémon");
+});
+
+app.get("/api/pokemons/:id", (req, res) => {
+  res.status(200).send({
+    pokemon: pokemonsList[parseInt(req.params.id) - 1],
+  });
+});
+
+app.post("/api/pokemons", (req, res) => {
+  try {
+    const newPokemon = req.body;
+    pokemonsList.push(newPokemon);
+    console.log(newPokemon);
+    // Sauvegarde dans le fichier JSON
+    fs.writeFileSync(
+      path.join(__dirname, './data/pokemons.json'),
+      JSON.stringify(pokemonsList, null, 2),
+      'utf8'
+    );
+    
+    res.status(201).send(newPokemon);
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde:', error);
+    res.status(500).send({ error: "Erreur lors de la sauvegarde du pokemon" });
+  }
+});
+
+app.put("/api/pokemons/:id", (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const updatedPokemon = req.body;
+    pokemonsList[id - 1] = updatedPokemon;
+    // Sauvegarde dans le fichier JSON
+    fs.writeFileSync(
+      path.join(__dirname, './data/pokemons.json'),
+      JSON.stringify(pokemonsList, null, 2),
+      'utf8'
+    );
+
+    res.status(200).send(updatedPokemon);
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde:', error);
+    res.status(500).send({ error: "Erreur lors de la sauvegarde du pokemon" });
+  }
+});
+
+app.delete("/api/pokemons/:id", (req, res) => { 
+  try {
+    const id = parseInt(req.params.id);
+    const deletedPokemon = pokemonsList.splice(id - 1, 1);
+    // Sauvegarde dans le fichier JSON  
+    fs.writeFileSync(
+      path.join(__dirname, './data/pokemons.json'),
+      JSON.stringify(pokemonsList, null, 2),
+      'utf8'
+    );
+
+    res.status(200).send(deletedPokemon);
+  } catch (error) {
+    console.error('Erreur lors de la suppression:', error);
+    res.status(500).send({ error: "Erreur lors de la suppression du pokemon" });
+  }
 });
 
 // Démarrage du serveur

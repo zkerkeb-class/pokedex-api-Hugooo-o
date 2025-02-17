@@ -3236,5 +3236,47 @@
       "Speed": 100
     },
     "image": "http://localhost:3000/assets/pokemons/151.png"
+  },
+  {
+    "id": 152,
+    "name": {
+      "english": "PokeTeste",
+      "japanese": "PokeTeste",
+      "chinese": "PokeTeste",
+      "french": "PokeTeste"
+    },
+    "type": [
+      "Fire"
+    ],
+    "base": {
+      "HP": 50,
+      "Attack": 50,
+      "Defense": 50,
+      "Sp. Attack": 50,
+      "Sp. Defense": 50,
+      "Speed": 50
+    },
+    "image": "/assets/pokemons/152.png"
+  },
+  {
+    "id": 153,
+    "name": {
+      "english": "PokeTest",
+      "japanese": "PokeTest",
+      "chinese": "PokeTest",
+      "french": "PokeTest"
+    },
+    "type": [
+      "Fire"
+    ],
+    "base": {
+      "HP": 100,
+      "Attack": 100,
+      "Defense": 100,
+      "Sp. Attack": 100,
+      "Sp. Defense": 100,
+      "Speed": 100
+    },
+    "image": "/assets/pokemons/153.png"
   }
 ]
