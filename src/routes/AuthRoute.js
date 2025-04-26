@@ -4,6 +4,7 @@ import Pokemon from '../models/Pokemon.js';
 import { generateToken, verifyToken, verifyAdmin } from '../auth/auth.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 
 dotenv.config();
 
@@ -13,6 +14,20 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
     try {
         const { username, password, isAdmin } = req.body;
+        
+        if (!username || !password) {
+            return res.status(400).json({ 
+                message: "Le nom d'utilisateur et le mot de passe sont requis" 
+            });
+        }
+        
+        // Vérifier si l'utilisateur existe déjà
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+            return res.status(400).json({ 
+                message: "Ce nom d'utilisateur est déjà utilisé" 
+            });
+        }
         
         // Seul un administrateur peut créer un autre administrateur
         let adminStatus = false;
@@ -31,25 +46,63 @@ router.post('/register', async (req, res) => {
             }
         }
         
-        const user = new User({ 
+        // S'assurer de ne pas définir d'ID explicitement - laisser MongoDB le générer
+        const newUser = new User({ 
             username, 
             password,
-            isAdmin: adminStatus
+            isAdmin: adminStatus,
+            // Ajouter un attribut unique pour éviter les conflits potentiels
+            registrationTimestamp: new Date().toISOString(),
+            // Ajouter une carte Pokemon factice avec un ID unique pour éviter l'erreur d'index
+            pokemonCards: [{
+                pokemonId: new mongoose.Types.ObjectId(), // ID temporaire
+                collectionId: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+            }]
         });
         
-        await user.save();
+        console.log("Nouvel utilisateur avant sauvegarde:", {
+            username: newUser.username,
+            id: newUser._id ? newUser._id.toString() : 'Non défini' // Pour le débogage
+        });
         
-        const token = generateToken(user._id);
-        res.status(201).json({ 
-            token,
-            user: {
-                id: user._id,
-                username: user.username,
-                isAdmin: user.isAdmin
+        // Sauvegarde avec gestion explicite des erreurs
+        try {
+            const savedUser = await newUser.save();
+            console.log("Utilisateur sauvegardé avec succès, ID:", savedUser._id.toString());
+            
+            const token = generateToken(savedUser._id);
+            return res.status(201).json({ 
+                token,
+                user: {
+                    id: savedUser._id,
+                    username: savedUser.username,
+                    isAdmin: savedUser.isAdmin
+                }
+            });
+        } catch (saveError) {
+            console.error("Erreur détaillée lors de la sauvegarde:", saveError);
+            
+            // Gestion spécifique des erreurs
+            if (saveError.code === 11000) {
+                // Extraire la clé dupliquée pour le débogage
+                const keyPattern = saveError.keyPattern ? Object.keys(saveError.keyPattern).join(', ') : 'inconnue';
+                const keyValue = saveError.keyValue ? JSON.stringify(saveError.keyValue) : 'inconnue';
+                
+                console.error(`Erreur de duplication: clé ${keyPattern}, valeur ${keyValue}`);
+                
+                return res.status(400).json({ 
+                    message: `Conflit de données. La valeur '${keyValue}' existe déjà.` 
+                });
             }
-        });
+            
+            throw saveError;
+        }
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        console.error("Erreur d'inscription détaillée:", error);
+        res.status(400).json({ 
+            message: error.message || "Erreur lors de l'inscription",
+            details: process.env.NODE_ENV !== 'production' ? error.toString() : undefined
+        });
     }
 });
 
