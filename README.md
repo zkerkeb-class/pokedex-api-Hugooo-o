@@ -166,6 +166,6 @@ http://localhost:3000/assets/pokemons/25.png
 - **Frontend** : React, Vite, React Router, Axios
 - **Backend** : Node.js, Express, MongoDB, Mongoose, JWT
 
-## Contribution
+## Lien vers la vidéo Youtube
 
-Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou à soumettre une pull request.
+https://youtu.be/d5DELlamZFI
